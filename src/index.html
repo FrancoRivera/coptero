@@ -11,19 +11,10 @@
 	<body class="bg-gray-200">
 	<h1 class="text-3xl font-bold">COpter</h1>
 
-	<canvas id="myCanvas" class="border rounded-md mx-auto bg-white"></canvas>
+	<div id="fps"></div>
+	<div id="score"></div>
+	<canvas id="myCanvas" class="border-4 border-gray-800 rounded-md mx-auto bg-white"></canvas>
 
-
-	<script>
-		let canvas = document.getElementById('myCanvas');
-		let ctx = canvas.getContext('2d');
-
-		canvas.width = (window.innerHeight - 100) / 16 * 9;
-		canvas.height = window.innerHeight - 100;
-
-		let width = canvas.width;
-		let height = canvas.height;
-
-	</script>
+	<script src="/js/main.js"></script>
 	</body>
 	</html>
