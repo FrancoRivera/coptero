@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+	<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<meta name="description" content="This is a simple website for a restaurant">
+		<link rel="stylesheet" href="/css/styles.css">
+		
+		<title>Document</title>
+	</head>
+	<body class="bg-gray-200">
+	<h1 class="text-3xl font-bold">COpter</h1>
+
+	<canvas id="myCanvas" class="border rounded-md mx-auto bg-white"></canvas>
+
+
+	<script>
+		let canvas = document.getElementById('myCanvas');
+		let ctx = canvas.getContext('2d');
+
+		canvas.width = (window.innerHeight - 100) / 16 * 9;
+		canvas.height = window.innerHeight - 100;
+
+		let width = canvas.width;
+		let height = canvas.height;
+
+	</script>
+	</body>
+	</html>
