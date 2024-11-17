@@ -119,6 +119,8 @@ class Pipe {
 }
 
 function startGame(){
+    canvas.removeEventListener("click", startGame)
+
     startTime = performance.now();
     player = new Player(width/3, height/2, 25)
 
@@ -268,6 +270,7 @@ function gameLoop() {
         // if (ok) {
         //     startGame();
         // }
+        GameOver();
         return;
     }
     player.render(ctx)
@@ -275,6 +278,26 @@ function gameLoop() {
         pipe.render(ctx);
     })
     requestAnimationFrame(gameLoop)
+}
+
+function GameOver(){
+    ctx.fillStyle = 'black';
+    ctx.font = '48px Mono'
+
+    let fontWidth = ctx.measureText('Game Over').width;
+    ctx.fillText('Game Over', (width/2)-(fontWidth/2)-40, height/2-32)
+
+    // print score below game over
+    let score = (performance.now() - startTime) / 1000;
+
+    ctx.font = '24px Arial';
+    fontWidth = ctx.measureText(`Score: ${Math.round(score)}`).width;
+    ctx.fillText(`Score: ${Math.round(score)}`, (width/2)-(fontWidth/2), height/2+32)
+
+    ctx.font = '20px serif';
+    ctx.fillText('Click to start a new game', 20, height/2+64)
+    
+    canvas.addEventListener("click", startGame)
 }
 
 

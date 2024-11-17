@@ -11,6 +11,7 @@ var drawImage = function(ctx, img, x, y, angle = 0, scale = 1) {
   ctx.restore();
 };
 var startGame = function() {
+  canvas.removeEventListener("click", startGame);
   startTime = performance.now();
   player = new Player(width / 3, height / 2, 25);
   pipes = [];
@@ -83,6 +84,7 @@ var gameLoop = function() {
   ctx.drawImage(bg, 0 + offset, 0, 720, 1280, 0, 0, canvas.width, canvas.height);
   update(fps);
   if (gameOver) {
+    GameOver();
     return;
   }
   player.render(ctx);
@@ -90,6 +92,19 @@ var gameLoop = function() {
     pipe.render(ctx);
   });
   requestAnimationFrame(gameLoop);
+};
+var GameOver = function() {
+  ctx.fillStyle = "black";
+  ctx.font = "48px Mono";
+  let fontWidth = ctx.measureText("Game Over").width;
+  ctx.fillText("Game Over", width / 2 - fontWidth / 2 - 40, height / 2 - 32);
+  let score = (performance.now() - startTime) / 1000;
+  ctx.font = "24px Arial";
+  fontWidth = ctx.measureText(`Score: ${Math.round(score)}`).width;
+  ctx.fillText(`Score: ${Math.round(score)}`, width / 2 - fontWidth / 2, height / 2 + 32);
+  ctx.font = "20px serif";
+  ctx.fillText("Click to start a new game", 20, height / 2 + 64);
+  canvas.addEventListener("click", startGame);
 };
 
 class Particle {
