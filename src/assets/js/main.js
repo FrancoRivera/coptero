@@ -68,8 +68,9 @@ var gameLoop = function() {
   let data = fpsCtx.getImageData(0, 0, fpsCanvas.width, fpsCanvas.height);
   fpsCtx.clearRect(0, 0, fpsCanvas.width, fpsCanvas.height);
   fpsCtx.putImageData(data, -1, 0);
-  fpsCtx.fillStyle = "black";
-  fpsCtx.fillRect(fpsCanvas.width - 1, 0, 1, fps);
+  fpsCtx.fillStyle = "rgb(147 197 253)";
+  fpsCtx.fillRect(fpsCanvas.width - 1, fpsCanvas.height - fps, 1, fps);
+  fpsEl.innerHTML = `FPS: ${Math.round(fps)}`, fpsCanvas.width - 100;
   let score = (now - startTime) / 1000;
   document.getElementById("score").innerText = `Score: ${Math.round(score)}`;
   if (canvas == null)
@@ -204,6 +205,7 @@ document.addEventListener("mouseup", (event) => {
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     keys.push("Space");
+    event.preventDefault();
   }
 });
 document.addEventListener("keyup", (event) => {
@@ -215,13 +217,14 @@ var canvas = document.getElementById("myCanvas");
 if (canvas === null) {
   throw new Error("Canvas not found");
 }
-canvas.width = (window.innerHeight - 100) / 16 * 9;
-canvas.height = window.innerHeight - 100;
+canvas.width = (window.innerHeight - 200) / 16 * 9;
+canvas.height = window.innerHeight - 200;
 var dpr = window.devicePixelRatio;
 var rect = canvas.getBoundingClientRect();
 canvas.width = rect.width * dpr;
 canvas.height = rect.height * dpr;
-var fpsCanvas = document.querySelector("#fps");
+var fpsCanvas = document.querySelector("#fpsCanvas");
+var fpsEl = document.querySelector("#fps");
 var fpsCtx = fpsCanvas.getContext("2d");
 var ctx = canvas.getContext("2d", { alpha: false });
 ctx.scale(dpr, dpr);

@@ -115,9 +115,6 @@ class Pipe {
         for (let i = 0; i < this.height; i += 32){
             ctx.drawImage(wall, 0, 0, 32, 32, this.x, this.y + i, this.width, 32);
         }
-	    // ctx.drawImage(wall, 0, 0, 32, 32, this.x, this.y, this.width, this.height);
-
-
     }
 }
 
@@ -188,6 +185,7 @@ document.addEventListener('mouseup', (event) => {
 document.addEventListener('keydown', (event) => {
     if (event.code === 'Space'){
         keys.push('Space')
+        event.preventDefault();
     }
 });
 
@@ -239,9 +237,9 @@ function gameLoop() {
     // draw the data shifted 1 pixel to the left
     fpsCtx.putImageData(data, -1, 0);
     
-    fpsCtx.fillStyle = 'black';
-    fpsCtx.fillRect(fpsCanvas.width-1, 0, 1, fps);
-    // fpsCtx.fillText(`FPS: ${Math.round(fps)}`, fpsCanvas.width - 100, 50);
+    fpsCtx.fillStyle = 'rgb(147 197 253)';
+    fpsCtx.fillRect(fpsCanvas.width-1, fpsCanvas.height-fps, 1, fps);
+    fpsEl!.innerHTML = `FPS: ${Math.round(fps)}`, fpsCanvas.width - 100, 50
 
     // document.getElementById('fps')!.innerText = `FPS: ${Math.round(fps)}`;
 
@@ -285,8 +283,8 @@ if (canvas === null) {
     throw new Error('Canvas not found');
 }
 
-canvas.width = (window.innerHeight - 100) / 16 * 9;
-canvas.height = window.innerHeight - 100;
+canvas.width = (window.innerHeight - 200) / 16 * 9;
+canvas.height = window.innerHeight - 200;
 
 // Get the DPR and size of the canvas
 const dpr = window.devicePixelRatio;
@@ -296,7 +294,8 @@ const rect = canvas.getBoundingClientRect();
 canvas.width = rect.width * dpr;
 canvas.height = rect.height * dpr;
 
-let fpsCanvas = document.querySelector('#fps') as HTMLCanvasElement;
+let fpsCanvas = document.querySelector('#fpsCanvas') as HTMLCanvasElement;
+let fpsEl = document.querySelector('#fps');
 let fpsCtx = fpsCanvas.getContext('2d');
 let ctx = canvas.getContext('2d', { alpha: false }) as CanvasRenderingContext2D;
 
