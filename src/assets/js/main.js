@@ -1,4 +1,15 @@
 // src/assets/js/main.ts
+var drawImage = function(ctx, img, x, y, angle = 0, scale = 1) {
+  let scale_half = scale / 2;
+  x -= img.width * scale_half;
+  y -= img.height * scale_half;
+  ctx.save();
+  ctx.translate(x + img.width * scale_half, y + img.height * scale_half);
+  ctx.rotate(angle);
+  ctx.translate(-x - img.width * scale_half, -y - img.height * scale_half);
+  ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
+  ctx.restore();
+};
 var startGame = function() {
   startTime = performance.now();
   player = new Player(width / 3, height / 2, 25);
@@ -10,7 +21,7 @@ var startGame = function() {
     let offset = Math.random() * 100 - 50;
     let barWidth = 35;
     let pipe = new Pipe(xCord, 0, barWidth, barHeight + offset);
-    let downPipe = new Pipe(xCord, height - barHeight, barWidth, barHeight - offset);
+    let downPipe = new Pipe(xCord, height - barHeight + offset, barWidth, barHeight - offset);
     pipes.push(pipe);
     pipes.push(downPipe);
   }
@@ -51,20 +62,26 @@ var gameLoop = function() {
   let dt = (now - lastFrameTime) / 1000;
   lastFrameTime = now;
   fps = 1 / dt;
-  document.getElementById("fps").innerText = `FPS: ${Math.round(fps)}`;
+  if (fpsCtx === null) {
+    throw new Error("Context not found");
+  }
+  let data = fpsCtx.getImageData(0, 0, fpsCanvas.width, fpsCanvas.height);
+  fpsCtx.clearRect(0, 0, fpsCanvas.width, fpsCanvas.height);
+  fpsCtx.putImageData(data, -1, 0);
+  fpsCtx.fillStyle = "black";
+  fpsCtx.fillRect(fpsCanvas.width - 1, 0, 1, fps);
   let score = (now - startTime) / 1000;
   document.getElementById("score").innerText = `Score: ${Math.round(score)}`;
-  let ctx = canvas.getContext("2d");
+  if (canvas == null)
+    return;
   if (ctx === null) {
     throw new Error("Context not found");
   }
   ctx.clearRect(0, 0, width, height);
+  let offset = (now - startTime) / 1000 * 100;
+  ctx.drawImage(bg, 0 + offset, 0, 720, 1280, 0, 0, canvas.width, canvas.height);
   update(fps);
   if (gameOver) {
-    let ok = confirm("Game Over");
-    if (ok) {
-      startGame();
-    }
     return;
   }
   player.render(ctx);
@@ -73,15 +90,33 @@ var gameLoop = function() {
   });
   requestAnimationFrame(gameLoop);
 };
-var canvas = document.getElementById("myCanvas");
-if (canvas === null) {
-  throw new Error("Canvas not found");
+
+class Particle {
+  x;
+  y;
+  dx;
+  dy;
+  radius;
+  age = 100;
+  constructor(x, y, dx, dy, radius) {
+    this.x = x;
+    this.y = y;
+    this.dx = dx;
+    this.dy = dy;
+    this.radius = radius;
+  }
+  update(frames) {
+    this.x += this.dx * frames / frameRate;
+    this.y += this.dy * frames / frameRate;
+    this.age -= 1;
+  }
+  render(ctx) {
+    ctx.fillStyle = `hsl(100 100% 50% / ${this.age}%)`;
+    ctx.beginPath();
+    ctx.arc(this.x - 10, this.y, this.radius, 0, 2 * Math.PI);
+    ctx.fill();
+  }
 }
-canvas.width = (window.innerHeight - 100) / 16 * 9;
-canvas.height = window.innerHeight - 100;
-var width = canvas.width;
-var height = canvas.height;
-var frameRate = 60;
 
 class Player {
   x;
@@ -89,10 +124,19 @@ class Player {
   radius;
   dy = 0;
   ddy = 0.2;
+  rotation = 0;
+  particles;
   constructor(x, y, radius) {
     this.x = x;
     this.y = y;
     this.radius = radius;
+    this.particles = [];
+    for (let i = 0;i < 10; i++) {
+      let dx = Math.random() - 2;
+      let dy = Math.random() * 2 - 1;
+      let particle = new Particle(x, y, dx, dy, 2);
+      this.particles.push(particle);
+    }
   }
   update(frames) {
     if (keys.includes("Space")) {
@@ -100,45 +144,56 @@ class Player {
     }
     this.dy = this.dy + this.ddy * frames / frameRate;
     this.y = this.y + this.dy;
+    this.rotation += 1;
+    this.particles.forEach((particle) => {
+      particle.update(frames);
+    });
+    for (let i = 0;i < this.particles.length; i++) {
+      let particle = this.particles[i];
+      if (particle.age <= 0) {
+        this.particles.splice(i, 1);
+      }
+    }
+    console.log(this.particles.length);
   }
   render(ctx) {
-    ctx.beginPath();
-    ctx.arc(this.x, this.y, this.radius, 0, 2 * Math.PI);
-    ctx.fillStyle = "red";
-    ctx.fill();
+    drawImage(ctx, playerImg, this.x, this.y, this.rotation * Math.PI / 180, 2);
+    this.particles.forEach((particle) => {
+      particle.render(ctx);
+    });
   }
   jump() {
+    this.rotation = -30;
     this.dy = -this.ddy * 15;
+    for (let i = 0;i < 50; i++) {
+      let dx = Math.random() - 2;
+      let dy = Math.random() * 2 - 1;
+      let particle = new Particle(this.x, this.y, dx, dy, 2);
+      this.particles.push(particle);
+    }
   }
 }
 
 class Pipe {
   x;
   y;
-  width2;
-  height2;
-  constructor(x, y, width2, height2) {
+  width;
+  height;
+  constructor(x, y, width, height) {
     this.x = x;
     this.y = y;
-    this.width = width2;
-    this.height = height2;
+    this.width = width;
+    this.height = height;
   }
   update(frames) {
     this.x -= 2 * frames / frameRate;
   }
   render(ctx) {
-    ctx.beginPath();
-    ctx.fillStyle = "blue";
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    for (let i = 0;i < this.height; i += 32) {
+      ctx.drawImage(wall, 0, 0, 32, 32, this.x, this.y + i, this.width, 32);
+    }
   }
 }
-var player;
-var pipes = [];
-var fps = 0;
-var lastFrameTime = 0;
-var startTime = performance.now();
-var gameOver = false;
-startGame();
 var keys = [];
 document.addEventListener("mousedown", (event) => {
   keys.push("Space");
@@ -156,3 +211,35 @@ document.addEventListener("keyup", (event) => {
     keys = keys.filter((key) => key !== "Space");
   }
 });
+var canvas = document.getElementById("myCanvas");
+if (canvas === null) {
+  throw new Error("Canvas not found");
+}
+canvas.width = (window.innerHeight - 100) / 16 * 9;
+canvas.height = window.innerHeight - 100;
+var dpr = window.devicePixelRatio;
+var rect = canvas.getBoundingClientRect();
+canvas.width = rect.width * dpr;
+canvas.height = rect.height * dpr;
+var fpsCanvas = document.querySelector("#fps");
+var fpsCtx = fpsCanvas.getContext("2d");
+var ctx = canvas.getContext("2d", { alpha: false });
+ctx.scale(dpr, dpr);
+canvas.style.width = `${rect.width}px`;
+canvas.style.height = `${rect.height}px`;
+var width = canvas.width;
+var height = canvas.height;
+var frameRate = 60;
+var playerImg = new Image;
+playerImg.src = "/img/player.png";
+var bg = new Image;
+bg.src = "/img/machu-picchu.png";
+var wall = new Image;
+wall.src = "/img/wall.png";
+var player;
+var pipes = [];
+var fps = 0;
+var lastFrameTime = 0;
+var startTime = performance.now();
+var gameOver = false;
+startGame();
