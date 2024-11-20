@@ -3,7 +3,8 @@
 Juego creado para enseñar conceptos básicos de creación de juegos.
 
 Sonidos:
-- JSFXR.me
+- https://sfxr.me/
+- https://musiclab.chromeexperiments.com/Song-Maker/
 
 Gráficos:
 

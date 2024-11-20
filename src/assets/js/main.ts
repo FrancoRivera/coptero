@@ -15,17 +15,21 @@ function drawImage(ctx: CanvasRenderingContext2D, img: HTMLImageElement, x: numb
 
 class Particle {
     public age = 100;
-    constructor(public x: number, public y: number, public dx: number, public dy: number, public radius: number) { }
+    private hue = 0;
+    constructor(public x: number, public y: number, public dx: number, public dy: number, public radius: number) {
+        this.hue = Math.random() * 100 + 30;
+     }
 
     update(frames: number) {
         this.x += this.dx * frames / game.frameRate;
         this.y += this.dy * frames / game.frameRate;
 
-        this.age -= 1;
+        this.age -= 2;
+        this.radius += 0.1
     }
 
     render(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = `hsl(100 100% 50% / ${this.age}%)`;
+        ctx.fillStyle = `hsl(${this.hue} 100% 90% / ${this.age}%)`;
         ctx.beginPath();
         ctx.arc(this.x - 10, this.y, this.radius, 0, 2 * Math.PI);
         ctx.fill();
@@ -61,7 +65,7 @@ class Player {
         // const seconds = frames / frameRate;
         this.dy = this.dy + (this.ddy * frames / game.frameRate)
         this.y = this.y + this.dy
-        //this.rotation += 1;
+        this.rotation += 1;
 
         this.particles.forEach(particle => {
             particle.update(frames)
@@ -87,13 +91,13 @@ class Player {
     jump() {
         game.jumpSound.play();
 
-        //this.rotation = -30
+        this.rotation = -30
         this.dy = (-this.ddy * 15);
 
 
         for (let i = 0; i < 50; i++) {
-            let dx = Math.random() - 2;
-            let dy = Math.random() * 2 - 1;
+            let dx = Math.random() * 2 - 4;
+            let dy = Math.random() * 2 + 1;
             let particle = new Particle(this.x, this.y, dx, dy, 2)
             this.particles.push(particle)
         }
@@ -105,6 +109,7 @@ class Pipe {
     constructor(public x: number, public y: number,
         public width: number, public height: number) { }
 
+        
     update(frames: number) {
         this.x -= 2 * frames / game.frameRate;
     }
@@ -301,8 +306,21 @@ class Coptero {
         // document.getElementById('fps')!.innerText = `FPS: ${Math.round(fps)}`;
 
 
-        let score = (now - this.startTime) / 1000;
+        let lastScore = document.getElementById('score')!.innerText;
+        // count how many pipes have passed
+        let score = 0;
+        this.pipes.forEach(pipe => {
+            if (pipe.x < this.player.x) {
+                score += 0.5;
+            }
+        }
+        )
+
+        score = Math.max(0, score);
         document.getElementById('score')!.innerText = `${Math.round(score)}`;
+        if (Math.round(score) > parseInt(lastScore)) {
+            this.coinSound.play();
+        }
 
         if (this.canvas == null) return;
         if (this.ctx === null) {
@@ -310,7 +328,6 @@ class Coptero {
         }
         this.ctx.clearRect(0, 0, this.width, this.height);
 
-        //drawImage(ctx, bg, this.x, this.y, this.rotation * Math.PI / 180, 2);
         let offset = (now - this.startTime) / 1000 * 100;
         this.ctx.drawImage(this.bg, 0 + offset, 0, 720, 1280, 0, 0, this.canvas.width, this.canvas.height);
 
