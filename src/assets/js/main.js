@@ -88,7 +88,6 @@ class Player {
         this.particles.splice(i, 1);
       }
     }
-    console.log(this.particles.length);
   }
   render(ctx) {
     drawImage(ctx, game.playerImg, this.x, this.y, this.rotation * Math.PI / 180, 1);
@@ -97,6 +96,7 @@ class Player {
     });
   }
   jump() {
+    game.jumpSound.play();
     this.dy = -this.ddy * 15;
     for (let i = 0;i < 50; i++) {
       let dx = Math.random() - 2;
@@ -122,7 +122,6 @@ class Pipe {
     this.x -= 2 * frames / game.frameRate;
   }
   render(ctx) {
-    ctx.fillRect(this.x, this.y, this.width + 10, this.height);
     const fullBlocks = Math.floor(this.height / 32);
     const remainder = this.height % 32;
     for (let i = 0;i < fullBlocks; i++) {
@@ -134,7 +133,7 @@ class Pipe {
   }
 }
 
-class Copter {
+class Coptero {
   canvas;
   ctx;
   width;
@@ -153,6 +152,10 @@ class Copter {
   playerImg;
   bg;
   wall;
+  jumpSound = new Audio("/audio/jump.wav");
+  gameOverSound = new Audio("/audio/explosion.wav");
+  coinSound = new Audio("/audio/coin.wav");
+  backgroundMusic = new Audio("/audio/background.wav");
   constructor() {
     this.canvas = document.getElementById("myCanvas");
     if (this.canvas === null) {
@@ -171,6 +174,26 @@ class Copter {
     this.bg.src = "/img/machu-picchu.png";
     this.wall = new Image;
     this.wall.src = "/img/wall.png";
+    let musicCheckbox = document.querySelector("#backgroundMusic");
+    musicCheckbox.checked = true;
+    this.backgroundMusic.loop = true;
+    this.backgroundMusic.volume = 0.1;
+    let text = "Toca para comenzar";
+    this.ctx.fillStyle = "white";
+    this.ctx.font = "32px Arial";
+    let fontWidth = this.ctx.measureText(text).width;
+    this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 - 100);
+    musicCheckbox.addEventListener("change", (event) => {
+      if (musicCheckbox.checked) {
+        this.backgroundMusic.play();
+      } else {
+        this.backgroundMusic.pause();
+      }
+    });
+    this.canvas.addEventListener("click", (event) => {
+      this.backgroundMusic.play();
+      this.startGame();
+    }, { once: true });
   }
   startGame() {
     let touchStart = 0;
@@ -234,7 +257,7 @@ class Copter {
     this.fpsCtx.fillRect(this.fpsCanvas.width - 1, this.fpsCanvas.height - this.fps, 1, this.fps);
     this.fpsEl.innerHTML = `FPS: ${Math.round(this.fps)}`, this.fpsCanvas.width - 100;
     let score = (now - this.startTime) / 1000;
-    document.getElementById("score").innerText = `Puntaje: ${Math.round(score)}`;
+    document.getElementById("score").innerText = `${Math.round(score)}`;
     if (this.canvas == null)
       return;
     if (this.ctx === null) {
@@ -251,15 +274,11 @@ class Copter {
     requestAnimationFrame(this.gameLoop.bind(this));
   }
   GameOver() {
+    this.gameOverSound.play();
     this.ctx.fillStyle = "black";
     this.ctx.font = "48px mono";
     let fontWidth = this.ctx.measureText("Game Over").width;
     this.ctx.fillText("Game Over", this.width / 2 - fontWidth / 2, this.height / 2 - 100);
-    let score = (performance.now() - this.startTime) / 1000;
-    this.ctx.font = "24px mono";
-    let text = `Puntos: ${Math.round(score)}`;
-    fontWidth = this.ctx.measureText(text).width;
-    this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 + 32);
     let button = document.querySelector("#restartButton");
     button.style.display = "block";
     button.onclick = () => {
@@ -286,5 +305,4 @@ document.addEventListener("keyup", (event) => {
     keys = keys.filter((key) => key !== "Space");
   }
 });
-var game = new Copter;
-game.startGame();
+var game = new Coptero;

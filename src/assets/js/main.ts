@@ -74,8 +74,6 @@ class Player {
                 this.particles.splice(i, 1)
             }
         }
-        console.log(this.particles.length)
-
     }
 
     render(ctx: CanvasRenderingContext2D) {
@@ -87,6 +85,8 @@ class Player {
     }
 
     jump() {
+        game.jumpSound.play();
+
         //this.rotation = -30
         this.dy = (-this.ddy * 15);
 
@@ -111,14 +111,10 @@ class Pipe {
 
     render(ctx: CanvasRenderingContext2D) {
         // split pipes into chunks of 32 in height
-
-        ctx.fillRect(this.x, this.y, this.width+10, this.height);
-
         const fullBlocks = Math.floor(this.height / 32);
         const remainder = this.height % 32;
 
         for (let i = 0; i < fullBlocks; i++) {
-            // drawImage(ctx, game.wall, this.x, this.y + i * 32, 0, 1);
             ctx.drawImage(game.wall, 0, 0, 32, 32, this.x, this.y + i * 32, this.width, 32);
         }
 
@@ -128,7 +124,7 @@ class Pipe {
     }
 }
 
-class Copter {
+class Coptero {
     canvas: HTMLCanvasElement;
     ctx: CanvasRenderingContext2D;
     width: number;
@@ -152,6 +148,11 @@ class Copter {
     playerImg: HTMLImageElement;
     bg: HTMLImageElement;
     wall: HTMLImageElement;
+
+    jumpSound = new Audio('/audio/jump.wav');
+    gameOverSound = new Audio('/audio/explosion.wav');
+    coinSound = new Audio('/audio/coin.wav');
+    backgroundMusic = new Audio('/audio/background.wav');
 
     constructor() {
         this.canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
@@ -178,6 +179,32 @@ class Copter {
 
         this.wall = new Image();
         this.wall.src = '/img/wall.png';
+
+        let musicCheckbox = document.querySelector('#backgroundMusic') as HTMLInputElement;
+        musicCheckbox.checked = true;
+        this.backgroundMusic.loop = true;
+        this.backgroundMusic.volume = 0.1;
+
+
+        let text = "Toca para comenzar"
+        this.ctx.fillStyle = 'white';
+        this.ctx.font = '32px Arial'
+        let fontWidth = this.ctx.measureText(text).width;
+        this.ctx.fillText(text, (this.width / 2) - (fontWidth / 2), this.height / 2 - 100)
+
+        musicCheckbox.addEventListener('change', (event) => {
+            if (musicCheckbox.checked) {
+                this.backgroundMusic.play();
+            } else {
+                this.backgroundMusic.pause();
+            }
+        })
+        
+        this.canvas.addEventListener("click", (event) => {
+            this.backgroundMusic.play();
+
+            this.startGame();
+        }, { once: true });
     }
 
     startGame() {
@@ -275,7 +302,7 @@ class Copter {
 
 
         let score = (now - this.startTime) / 1000;
-        document.getElementById('score')!.innerText = `Puntaje: ${Math.round(score)}`;
+        document.getElementById('score')!.innerText = `${Math.round(score)}`;
 
         if (this.canvas == null) return;
         if (this.ctx === null) {
@@ -300,19 +327,13 @@ class Copter {
     }
 
     GameOver() {
+        this.gameOverSound.play();
+
         this.ctx.fillStyle = 'black';
         this.ctx.font = '48px mono'
 
         let fontWidth = this.ctx.measureText('Game Over').width;
         this.ctx.fillText('Game Over', (this.width / 2) - (fontWidth / 2), this.height / 2 - 100)
-
-        // print score below game over
-        let score = (performance.now() - this.startTime) / 1000;
-
-        this.ctx.font = '24px mono';
-        let text = `Puntos: ${Math.round(score)}`;
-        fontWidth = this.ctx.measureText(text).width;
-        this.ctx.fillText(text, (this.width / 2) - (fontWidth / 2), this.height / 2 + 32)
 
         // create a button and place it in the middle of the screen
         let button = document.querySelector('#restartButton') as HTMLButtonElement;
@@ -378,5 +399,4 @@ document.addEventListener('keyup', (event) => {
 });
 
 
-let game = new Copter();
-game.startGame();
+let game = new Coptero();
