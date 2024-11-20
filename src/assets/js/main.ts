@@ -314,27 +314,14 @@ class Copter {
         fontWidth = this.ctx.measureText(text).width;
         this.ctx.fillText(text, (this.width / 2) - (fontWidth / 2), this.height / 2 + 32)
 
-        this.ctx.font = '16px mono';
-        text = "Mantén presionado para reiniciar"
-        if (this.width > 400) {
-            text = "Doble click para reiniciar"
+        // create a button and place it in the middle of the screen
+        let button = document.querySelector('#restartButton') as HTMLButtonElement;
+        button.style.display = 'block';
+        button.onclick = () => {
+            this.startGame();
+            // hide the button
+            button.style.display = 'none';
         }
-        fontWidth = this.ctx.measureText(text).width;
-        // fill text in 2 lines
-        this.ctx.fillText(text, (this.width / 2) - (fontWidth / 2), this.height / 2 + 96)
-
-        this.canvas.addEventListener("dblclick", ()=>{this.startGame()}, {once: true})
-        // add "touch and hold" for mobile
-        let touchStart = 0;
-        this.canvas.addEventListener("touchstart", (event) => {
-            touchStart = performance.now();
-        })
-        this.canvas.addEventListener("touchend", (event) => {
-            let touchEnd = performance.now();
-            if (touchEnd - touchStart > 1000) {
-                this.startGame();
-            }
-        })
     }
 }
 

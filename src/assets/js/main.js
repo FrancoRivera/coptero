@@ -260,26 +260,12 @@ class Copter {
     let text = `Puntos: ${Math.round(score)}`;
     fontWidth = this.ctx.measureText(text).width;
     this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 + 32);
-    this.ctx.font = "16px mono";
-    text = "Mant\xE9n presionado para reiniciar";
-    if (this.width > 400) {
-      text = "Doble click para reiniciar";
-    }
-    fontWidth = this.ctx.measureText(text).width;
-    this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 + 96);
-    this.canvas.addEventListener("dblclick", () => {
+    let button = document.querySelector("#restartButton");
+    button.style.display = "block";
+    button.onclick = () => {
       this.startGame();
-    }, { once: true });
-    let touchStart = 0;
-    this.canvas.addEventListener("touchstart", (event) => {
-      touchStart = performance.now();
-    });
-    this.canvas.addEventListener("touchend", (event) => {
-      let touchEnd = performance.now();
-      if (touchEnd - touchStart > 1000) {
-        this.startGame();
-      }
-    });
+      button.style.display = "none";
+    };
   }
 }
 var keys = [];
