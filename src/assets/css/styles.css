@@ -620,8 +620,16 @@ video {
   margin-top: 1rem;
 }
 
+.flex {
+  display: flex;
+}
+
 .hidden {
   display: none;
+}
+
+.aspect-\[9\/16\] {
+  aspect-ratio: 9/16;
 }
 
 .h-32 {
@@ -642,6 +650,15 @@ video {
 
 .max-w-screen-sm {
   max-width: 640px;
+}
+
+.justify-center {
+  justify-content: center;
+}
+
+.gap-x-2 {
+  -moz-column-gap: 0.5rem;
+       column-gap: 0.5rem;
 }
 
 .space-y-2 > :not([hidden]) ~ :not([hidden]) {

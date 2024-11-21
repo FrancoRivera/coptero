@@ -154,10 +154,10 @@ class Coptero {
     bg: HTMLImageElement;
     wall: HTMLImageElement;
 
-    jumpSound = new Audio('/audio/jump.wav');
-    gameOverSound = new Audio('/audio/explosion.wav');
-    coinSound = new Audio('/audio/coin.wav');
-    backgroundMusic = new Audio('/audio/background.wav');
+    jumpSound = new Audio('/co/audio/jump.wav');
+    gameOverSound = new Audio('/co/audio/explosion.wav');
+    coinSound = new Audio('/co/audio/coin.wav');
+    backgroundMusic = new Audio('/co/audio/background.wav');
 
     constructor() {
         this.canvas = document.getElementById('myCanvas') as HTMLCanvasElement;
@@ -177,13 +177,13 @@ class Coptero {
 
 
         this.playerImg = new Image();
-        this.playerImg.src = '/img/player.png';
+        this.playerImg.src = '/co/img/player.png';
 
         this.bg = new Image();
-        this.bg.src = '/img/machu-picchu.png';
+        this.bg.src = '/co/img/machu-picchu.png';
 
         this.wall = new Image();
-        this.wall.src = '/img/wall.png';
+        this.wall.src = '/co/img/wall.png';
 
         let musicCheckbox = document.querySelector('#backgroundMusic') as HTMLInputElement;
         musicCheckbox.checked = true;
@@ -401,6 +401,14 @@ document.addEventListener('mousedown', (event) => {
 document.addEventListener('mouseup', (event) => {
     keys = keys.filter(key => key !== 'Space')
 })
+
+document.addEventListener("touchstart", (event) => {
+    keys.push("Space");
+  });
+  document.addEventListener("touchend", (event) => {
+    keys = keys.filter((key) => key !== "Space");
+  });
+
 
 document.addEventListener('keydown', (event) => {
     if (event.code === 'Space') {

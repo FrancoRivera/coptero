@@ -1,0 +1,12 @@
+{
+  "name": "coptero",
+  "version": "1.0.0",
+  "description": "Juego creado para enseñar conceptos básicos de creación de juegos.",
+  "main": "tailwind.config.js",
+  "scripts": {
+    "game": "bun build ./src/assets/js/main.ts --outfile=./src/assets/js/main.js --watch",
+    "spriteless": "bun build ./src/assets/js/spriteless.ts --outfile=./src/assets/js/spriteless.js --watch"
+  },
+  "author": "",
+  "license": "ISC"
+}
