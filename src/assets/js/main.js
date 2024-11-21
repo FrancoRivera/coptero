@@ -42,9 +42,9 @@ class Particle {
     this.radius = radius;
     this.hue = Math.random() * 100 + 30;
   }
-  update(frames) {
-    this.x += this.dx * frames / game.frameRate;
-    this.y += this.dy * frames / game.frameRate;
+  update(deltaTime) {
+    this.x += this.dx * deltaTime * game.frameRate;
+    this.y += this.dy * deltaTime * game.frameRate;
     this.age -= 2;
     this.radius += 0.1;
   }
@@ -60,8 +60,8 @@ class Player {
   x;
   y;
   radius;
-  dy = 0;
-  ddy = 0.4;
+  dy = 1;
+  ddy = 1000;
   rotation = 0;
   particles;
   constructor(x, y, radius) {
@@ -76,15 +76,16 @@ class Player {
       this.particles.push(particle);
     }
   }
-  update(frames) {
+  update(deltaTime) {
     if (keys.includes("Space")) {
       this.jump();
     }
-    this.dy = this.dy + this.ddy * frames / game.frameRate;
-    this.y = this.y + this.dy;
+    let oldDy = this.dy;
+    this.dy = this.dy + this.ddy * deltaTime;
+    this.y = oldDy * deltaTime + 0.5 * (this.dy - oldDy) * deltaTime + this.y;
     this.rotation += 1;
     this.particles.forEach((particle) => {
-      particle.update(frames);
+      particle.update(deltaTime);
     });
     for (let i = 0;i < this.particles.length; i++) {
       let particle = this.particles[i];
@@ -100,10 +101,13 @@ class Player {
     });
   }
   jump() {
-    game.jumpSound.play();
     this.rotation = -30;
-    this.dy = -this.ddy * 15;
-    for (let i = 0;i < 50; i++) {
+    this.dy = -300;
+    let particleCount = 50;
+    if (window.innerWidth > 600) {
+      particleCount = 20;
+    }
+    for (let i = 0;i < particleCount; i++) {
       let dx = Math.random() * 2 - 4;
       let dy = Math.random() * 2 + 1;
       let particle = new Particle(this.x, this.y, dx, dy, 2);
@@ -115,25 +119,28 @@ class Player {
 class Pipe {
   x;
   y;
-  width;
   height;
-  constructor(x, y, width, height) {
+  width = 32;
+  constructor(x, y, height) {
     this.x = x;
     this.y = y;
-    this.width = width;
     this.height = height;
+    this.width = 32;
   }
-  update(frames) {
-    this.x -= 2 * frames / game.frameRate;
+  update(deltaTime) {
+    this.x -= 2 * (deltaTime * game.frameRate);
   }
   render(ctx) {
-    const fullBlocks = Math.floor(this.height / 32);
-    const remainder = this.height % 32;
+    ctx.fillStyle = "green";
+    ctx.fillRect(this.x, this.y, this.width, this.height);
+    let blockWidth = 32;
+    const fullBlocks = Math.floor(this.height / blockWidth);
+    const remainder = this.height % blockWidth;
     for (let i = 0;i < fullBlocks; i++) {
-      ctx.drawImage(game.wall, 0, 0, 32, 32, this.x, this.y + i * 32, this.width, 32);
+      ctx.drawImage(game.wall, 0, 0, 32, 32, this.x, this.y + i * blockWidth, this.width, blockWidth);
     }
     if (remainder > 0) {
-      ctx.drawImage(game.wall, 0, 0, 32, remainder, this.x, this.y + fullBlocks * 32, this.width, remainder);
+      ctx.drawImage(game.wall, 0, 0, 32, remainder, this.x, this.y + fullBlocks * blockWidth, this.width, remainder);
     }
   }
 }
@@ -148,7 +155,7 @@ class Coptero {
   minGap = 100;
   pipes = [];
   fps = 0;
-  lastFrameTime = 0;
+  lastFrameTime = 1;
   startTime = performance.now();
   gameOver = false;
   fpsEl = document.querySelector("#fps");
@@ -157,10 +164,10 @@ class Coptero {
   playerImg;
   bg;
   wall;
-  jumpSound = new Audio("/audio/jump.wav");
-  gameOverSound = new Audio("/audio/explosion.wav");
-  coinSound = new Audio("/audio/coin.wav");
-  backgroundMusic = new Audio("/audio/background.wav");
+  jumpSound = new Audio(basePath + "audio/jump.wav");
+  gameOverSound = new Audio(basePath + "audio/explosion.wav");
+  coinSound = new Audio(basePath + "audio/coin.wav");
+  backgroundMusic = new Audio(basePath + "audio/background.wav");
   constructor() {
     this.canvas = document.getElementById("myCanvas");
     if (this.canvas === null) {
@@ -168,26 +175,36 @@ class Coptero {
     }
     this.canvas.width = (window.innerHeight - 200) / 16 * 9;
     this.canvas.height = window.innerHeight - 200;
+    this.ctx = this.canvas.getContext("2d", { alpha: false });
+    this.ctx.fillStyle = "black";
+    this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
     this.fpsCanvas = document.querySelector("#fpsCanvas");
     this.fpsCtx = this.fpsCanvas.getContext("2d");
-    this.ctx = this.canvas.getContext("2d", { alpha: false });
     this.width = this.canvas.width;
     this.height = this.canvas.height;
     this.playerImg = new Image;
-    this.playerImg.src = "/img/player.png";
+    this.playerImg.src = basePath + "img/player.png";
     this.bg = new Image;
-    this.bg.src = "/img/machu-picchu.png";
+    this.bg.src = basePath + "img/machu-picchu.png";
     this.wall = new Image;
-    this.wall.src = "/img/wall.png";
+    this.wall.src = basePath + "img/wall.png";
     let musicCheckbox = document.querySelector("#backgroundMusic");
     musicCheckbox.checked = true;
     this.backgroundMusic.loop = true;
     this.backgroundMusic.volume = 0.1;
-    let text = "Toca para comenzar";
     this.ctx.fillStyle = "white";
-    this.ctx.font = "32px Arial";
+    let fontSize = 32;
+    fontSize = Math.min(fontSize, this.width / 10);
+    this.ctx.font = fontSize + "px 'Press Start 2P'";
+    let text = "Toca";
     let fontWidth = this.ctx.measureText(text).width;
     this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 - 100);
+    text = "para";
+    fontWidth = this.ctx.measureText(text).width;
+    this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 - 0);
+    text = "Comenzar";
+    fontWidth = this.ctx.measureText(text).width;
+    this.ctx.fillText(text, this.width / 2 - fontWidth / 2, this.height / 2 + 100);
     musicCheckbox.addEventListener("change", (event) => {
       if (musicCheckbox.checked) {
         this.backgroundMusic.play();
@@ -196,47 +213,43 @@ class Coptero {
       }
     });
     this.canvas.addEventListener("click", (event) => {
-      this.backgroundMusic.play();
+      if (window.innerWidth > 600) {
+        this.backgroundMusic.play();
+      }
       this.startGame();
     }, { once: true });
   }
   startGame() {
-    let touchStart = 0;
-    this.canvas.removeEventListener("touchstart", (event) => {
-      touchStart = performance.now();
-    });
-    this.canvas.removeEventListener("touchend", (event) => {
-      let touchEnd = performance.now();
-      if (touchEnd - touchStart > 1000) {
-        this.startGame();
-      }
-    });
+    let now = performance.now();
+    this.lastFrameTime = now;
     this.startTime = performance.now();
     this.player = new Player(this.width / 3, this.height / 2, 16);
+    this.player.jump();
+    this.player.jump();
+    this.player.jump();
     this.pipes = [];
     for (var i = 0;i < 100; i++) {
-      const horizontalGap = 150;
+      const horizontalGap = 250;
       let xCord = this.width + i * horizontalGap;
       let gapBetweenBars = 150 - i * 2;
       let barHeight = this.height / 2 - gapBetweenBars / 2;
       let offset = Math.random() * 100 - 50;
-      let barWidth = 35;
-      let pipe = new Pipe(xCord, 0, barWidth, barHeight + offset);
-      let downPipe = new Pipe(xCord, this.height - barHeight + offset, barWidth, barHeight - offset);
+      let pipe = new Pipe(xCord, 0, barHeight + offset);
+      let downPipe = new Pipe(xCord, this.height - barHeight + offset, barHeight - offset);
       this.pipes.push(pipe);
       this.pipes.push(downPipe);
     }
     this.gameOver = false;
     requestAnimationFrame(this.gameLoop.bind(this));
   }
-  update(frames) {
-    this.player.update(frames);
+  update(deltaTime) {
+    this.player.update(deltaTime);
     if (this.player.y > this.height) {
       this.gameOver = true;
       return;
     }
     this.pipes.forEach((pipe) => {
-      pipe.update(frames);
+      pipe.update(deltaTime);
       if (colliding(this.player, pipe)) {
         this.gameOver = true;
         return;
@@ -281,7 +294,7 @@ class Coptero {
     this.ctx.clearRect(0, 0, this.width, this.height);
     let offset = (now - this.startTime) / 1000 * 100;
     this.ctx.drawImage(this.bg, 0 + offset, 0, 720, 1280, 0, 0, this.canvas.width, this.canvas.height);
-    this.update(this.fps);
+    this.update(dt);
     this.player.render(this.ctx);
     this.pipes.forEach((pipe) => {
       pipe.render(this.ctx);
@@ -290,8 +303,10 @@ class Coptero {
   }
   GameOver() {
     this.gameOverSound.play();
+    let fontSize = 32;
+    fontSize = Math.min(fontSize, this.width / 10);
     this.ctx.fillStyle = "black";
-    this.ctx.font = "48px mono";
+    this.ctx.font = fontSize + "px 'Press Start 2P'";
     let fontWidth = this.ctx.measureText("Game Over").width;
     this.ctx.fillText("Game Over", this.width / 2 - fontWidth / 2, this.height / 2 - 100);
     let button = document.querySelector("#restartButton");
@@ -309,6 +324,12 @@ document.addEventListener("mousedown", (event) => {
 document.addEventListener("mouseup", (event) => {
   keys = keys.filter((key) => key !== "Space");
 });
+document.addEventListener("touchstart", (event) => {
+  keys.push("Space");
+});
+document.addEventListener("touchend", (event) => {
+  keys = keys.filter((key) => key !== "Space");
+});
 document.addEventListener("keydown", (event) => {
   if (event.code === "Space") {
     keys.push("Space");
@@ -320,4 +341,7 @@ document.addEventListener("keyup", (event) => {
     keys = keys.filter((key) => key !== "Space");
   }
 });
-var game = new Coptero;
+var game;
+window.addEventListener("load", () => {
+  game = new Coptero;
+});

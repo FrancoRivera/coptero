@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="es-PE">
+
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="This is a simple website for a restaurant">
+	<link rel="stylesheet" href="/css/styles.css">
+
+	<title></title>
+</head>
+
+<body class="bg-blue-100">
+
+	<div class="relative mt-4 flex gap-x-2">
+		<canvas id="canvas" class="border-4 border-gray-800 rounded-md bg-white h-[90vh] aspect-[9/16]"></canvas>
+		<canvas id="canvas2" class="border-4 border-gray-800 rounded-md bg-white h-[90vh] aspect-[9/16]"></canvas>
+		<canvas id="canvas60" class="border-4 border-gray-800 rounded-md bg-white h-[90vh] aspect-[9/16]"></canvas>
+		<canvas id="canvasWall" class="border-4 border-gray-800 rounded-md bg-white h-[90vh] aspect-[9/16]"></canvas>
+	</div>
+
+	<script>
+
+		function render(ctx, x, y, rectX) {
+			
+			ctx.fillStyle = 'red';
+			ctx.beginPath();
+			ctx.arc(100, y, 20, 0, Math.PI * 2);
+			ctx.fill();
+
+			
+			ctx.fillStyle = 'green';
+			ctx.fillRect(rectX, 0, 50, 200);
+			ctx.fillRect(rectX, 300, 50, 200);
+
+		}
+
+		async function sleep(ms) {
+			return new Promise(resolve => setTimeout(resolve, ms));
+		}
+
+
+		async function loop(ctx, sleepInMs){
+			let x = 100;
+			let y = 250;
+			let rectX = 200;
+
+			let ys = [250, 240, 230, 220, 210, 200, 190, 180, 190, 200, 210, 220, 230, 240, 250];
+			let frame = 0;
+			function update() {
+				frame++;
+				y = ys[frame % ys.length];
+			}
+
+
+			
+			for (let i = 0; i < 500; i++) {
+				update();
+				ctx.clearRect(0, 0, canvas.width, canvas.height);
+				if (sleepInMs > 20) await sleep(sleepInMs)
+				rectX -= 1;
+				render(ctx, x, y, rectX);
+				await sleep(sleepInMs)
+			}
+		}
+
+		let canvas = document.getElementById('canvas');
+		let ctx = canvas.getContext('2d');
+		canvas.width = 500 / 16 * 9;
+		canvas.height = 500;
+
+		loop(ctx, 1000);
+
+		let canvas2 = document.getElementById('canvas2');
+		let ctx2 = canvas2.getContext('2d');
+		canvas2.width = 500 / 16 * 9;
+		canvas2.height = 500;
+		loop(ctx2, 100);
+
+		let canvas60 = document.getElementById('canvas60');
+		let ctx60 = canvas60.getContext('2d');
+		canvas60.width = 500 / 16 * 9;
+		canvas60.height = 500;
+		loop(ctx60, 16);
+
+	</script>
+</body>
+
+</html>
