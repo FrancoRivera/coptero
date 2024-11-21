@@ -2,12 +2,15 @@
 
 Juego creado para enseñar conceptos básicos de creación de juegos.
 
-Sonidos:
-- https://sfxr.me/
-- https://musiclab.chromeexperiments.com/Song-Maker/
+## Sonidos
 
-Gráficos:
+- <https://sfxr.me/>
+- <https://musiclab.chromeexperiments.com/Song-Maker/>
+
+## Gráficos
 
 - Aseprite
 
-Licencia: MIT
+## Licencia
+
+MIT

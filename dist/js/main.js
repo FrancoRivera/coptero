@@ -101,6 +101,9 @@ class Player {
     });
   }
   jump() {
+    if (window.innerWidth > 600) {
+      game.jumpSound.play();
+    }
     this.rotation = -30;
     this.dy = -300;
     let particleCount = 50;
@@ -292,7 +295,7 @@ class Coptero {
       throw new Error("Context not found");
     }
     this.ctx.clearRect(0, 0, this.width, this.height);
-    let offset = (now - this.startTime) / 1000 * 100;
+    let offset = (now - this.startTime) / 1000 * 100 % (7200 - 720);
     this.ctx.drawImage(this.bg, 0 + offset, 0, 720, 1280, 0, 0, this.canvas.width, this.canvas.height);
     this.update(dt);
     this.player.render(this.ctx);
